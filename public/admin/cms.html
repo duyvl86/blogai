@@ -1,0 +1,49 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Content Manager - NongTech</title>
+</head>
+<body>
+  <script src="https://unpkg.com/decap-cms@^3.0.0/dist/decap-cms.js"></script>
+  <script>
+    // Get token from URL hash or localStorage
+    const hash = window.location.hash;
+    let token = localStorage.getItem('github_token');
+    
+    // Check for token in URL (from OAuth callback)
+    if (hash && hash.includes('token=')) {
+      token = hash.split('token=')[1].split('&')[0];
+      localStorage.setItem('github_token', token);
+      // Clean URL
+      window.location.hash = '';
+    }
+    
+    // Inject token into CMS config
+    if (token && window.CMS) {
+      // We'll modify the config loading
+      const originalFetch = window.fetch;
+      window.fetch = function(url, options) {
+        if (url.includes('config.yml')) {
+          return originalFetch(url, options).then(response => {
+            return response.text().then(text => {
+              // Add token to backend config
+              const config = text.replace(
+                'backend:',
+                'backend:\n  token: ' + token
+              );
+              return new Response(config, {
+                status: response.status,
+                statusText: response.statusText,
+                headers: response.headers
+              });
+            });
+          });
+        }
+        return originalFetch(url, options);
+      };
+    }
+  </script>
+</body>
+</html>

@@ -4,9 +4,54 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Content Manager - NongTech</title>
+  <style>
+    body { font-family: system-ui, sans-serif; padding: 2rem; max-width: 400px; margin: 0 auto; }
+    input, button { width: 100%; padding: 10px; margin: 10px 0; box-sizing: border-box; }
+    button { background: #0969da; color: white; border: none; cursor: pointer; }
+    button:hover { background: #0856b8; }
+    .error { color: red; margin-top: 10px; }
+  </style>
 </head>
 <body>
-  <!-- Include the script that builds the page and powers Decap CMS -->
-  <script src="https://unpkg.com/decap-cms@^3.0.0/dist/decap-cms.js?v=20250228"></script>
+  <h1>Đăng nhập CMS</h1>
+  <p>Nhập GitHub Personal Access Token để truy cập:</p>
+  
+  <input type="text" id="token" placeholder="ghp_xxxxxxxxxxxx" />
+  <button onclick="login()">Đăng nhập</button>
+  <div id="error" class="error"></div>
+  
+  <p style="font-size: 12px; color: #666;">
+    Tạo token tại: <a href="https://github.com/settings/tokens" target="_blank">GitHub Tokens</a><br>
+    Cấp quyền: repo (Full control of private repositories)
+  </p>
+
+  <script>
+    function login() {
+      const token = document.getElementById('token').value.trim();
+      if (!token) {
+        document.getElementById('error').textContent = 'Vui lòng nhập token';
+        return;
+      }
+      
+      // Lưu token và chuyển đến CMS
+      localStorage.setItem('github_token', token);
+      
+      // Kiểm tra token bằng cách gọi GitHub API
+      fetch('https://api.github.com/user', {
+        headers: {
+          'Authorization': 'token ' + token,
+          'Accept': 'application/vnd.github.v3+json'
+        }
+      })
+      .then(res => {
+        if (!res.ok) throw new Error('Token không hợp lệ');
+        // Token hợp lệ, load CMS
+        window.location.href = '/admin/cms.html';
+      })
+      .catch(err => {
+        document.getElementById('error').textContent = 'Token không hợp lệ hoặc thiếu quyền';
+      });
+    }
+  </script>
 </body>
 </html>
