@@ -2,6 +2,7 @@ backend:
   name: github
   repo: duyvl86/blogai
   branch: main
+  base_url: https://cms-oauth.duynguyendev.workers.dev
 
 media_folder: "public/images"
 public_folder: "/images"
