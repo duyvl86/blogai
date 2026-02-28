@@ -1,11 +1,12 @@
 ---
 title: "AI Generative: Công nghệ giúp nông dân làm việc hiệu quả hơn"
 description: "Tìm hiểu về AI generative và cách nó có thể giúp nông dân trong công việc hàng ngày."
-date: 2025-01-15
+date: 
 author: "Admin"
-category: "Công nghệ"
+image: "/images/blog-placeholder.jpg"
+category: "ai"
 tags: ["ai", "công nghệ", "nông nghiệp"]
-featured: true
+featured: false
 ---
 
 # AI Generative: Công nghệ giúp nông dân làm việc hiệu quả hơn
@@ -43,3 +44,5 @@ Công cụ AI của Google giúp tìm kiếm thông tin về thời tiết, giá
 AI không phải là công nghệ xa vời. Nông dân hoàn toàn có thể sử dụng AI để cải thiện cuộc sống và công việc hàng ngày. Hãy bắt đầu từ những công cụ đơn giản nhất!
 
 Update .....
+
+Update tiếp ...
