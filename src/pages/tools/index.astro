@@ -1,0 +1,197 @@
+---
+import Layout from '../../layouts/Layout.astro';
+
+const categories = [
+  { name: 'Tất cả', slug: 'all', count: 15 },
+  { name: 'Chatbot', slug: 'chatbot', count: 4 },
+  { name: 'Image Generation', slug: 'image', count: 3 },
+  { name: 'Code Assistant', slug: 'code', count: 3 },
+  { name: 'Productivity', slug: 'productivity', count: 3 },
+  { name: 'Video', slug: 'video', count: 2 },
+];
+
+const tools = [
+  {
+    name: 'ChatGPT',
+    description: 'Chatbot AI mạnh nhất từ OpenAI, có khả năng trả lời câu hỏi, viết code, và nhiều tác vụ khác.',
+    website: 'https://chat.openai.com',
+    category: 'chatbot',
+    pricing: 'freemium',
+    features: ['Trả lời thông minh', 'Viết code', 'Dịch thuật', 'Tạo nội dung'],
+    color: 'from-green-500 to-green-700'
+  },
+  {
+    name: 'Claude',
+    description: 'AI assistant từ Anthropic với khả năng phân tích và xử lý văn bản rất tốt.',
+    website: 'https://claude.ai',
+    category: 'chatbot',
+    pricing: 'freemium',
+    features: ['Phân tích văn bản', 'Viết sáng tạo', 'Hỗ trợ code', 'An toàn'],
+    color: 'from-orange-500 to-orange-700'
+  },
+  {
+    name: 'Midjourney',
+    description: 'Công cụ tạo hình ảnh AI mạnh nhất, tạo ra những tác phẩm nghệ thuật đẹp mắt.',
+    website: 'https://midjourney.com',
+    category: 'image',
+    pricing: 'paid',
+    features: ['Tạo hình ảnh', 'Nghệ thuật số', 'Design', 'Concept art'],
+    color: 'from-purple-500 to-purple-700'
+  },
+  {
+    name: 'DALL-E',
+    description: 'Công cụ tạo hình ảnh từ văn bản của OpenAI.',
+    website: 'https://openai.com/dall-e-3',
+    category: 'image',
+    pricing: 'paid',
+    features: ['Tạo hình ảnh', 'Chỉnh sửa', 'Biến thể', 'High quality'],
+    color: 'from-pink-500 to-pink-700'
+  },
+  {
+    name: 'GitHub Copilot',
+    description: 'Trợ lý code AI tích hợp vào VS Code và các IDE khác.',
+    website: 'https://github.com/features/copilot',
+    category: 'code',
+    pricing: 'paid',
+    features: ['Autocomplete code', 'Giải thích code', 'Tạo function', 'Debug'],
+    color: 'from-blue-500 to-blue-700'
+  },
+  {
+    name: 'Cursor',
+    description: 'IDE AI giúp bạn viết code nhanh hơn với AI assistance.',
+    website: 'https://cursor.sh',
+    category: 'code',
+    pricing: 'freemium',
+    features: ['AI coding', 'Autocomplete', 'Refactor', 'Debug'],
+    color: 'from-indigo-500 to-indigo-700'
+  },
+  {
+    name: 'Notion AI',
+    description: 'AI trong Notion giúp bạn viết, tóm tắt và brainstorm hiệu quả.',
+    website: 'https://notion.so/product/ai',
+    category: 'productivity',
+    pricing: 'paid',
+    features: ['Viết content', 'Tóm tắt', 'Brainstorm', 'Edit'],
+    color: 'from-gray-500 to-gray-700'
+  },
+  {
+    name: 'Runway',
+    description: 'Nền tảng sáng tạo video AI với nhiều tính năng mạnh mẽ.',
+    website: 'https://runwayml.com',
+    category: 'video',
+    pricing: 'freemium',
+    features: ['Tạo video', 'Edit video', 'Effects', 'Gen-2'],
+    color: 'from-red-500 to-red-700'
+  },
+  {
+    name: 'Perplexity',
+    description: 'AI search engine với khả năng tìm kiếm và tổng hợp thông tin nhanh chóng.',
+    website: 'https://www.perplexity.ai',
+    category: 'chatbot',
+    pricing: 'freemium',
+    features: ['Search', 'Research', 'Tổng hợp', 'Citations'],
+    color: 'from-teal-500 to-teal-700'
+  },
+];
+---
+
+<Layout title="Công cụ AI - BlogAI">
+  <section class="py-12 bg-gray-50 dark:bg-gray-900">
+    <div class="container-custom">
+      <div class="text-center mb-12">
+        <h1 class="text-4xl font-bold text-gray-900 dark:text-white mb-4">
+          Công cụ AI
+        </h1>
+        <p class="text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+          Khám phá các công cụ AI tốt nhất giúp bạn nâng cao năng suất và sáng tạo
+        </p>
+      </div>
+
+      <!-- Search & Filter -->
+      <div class="flex flex-col md:flex-row gap-4 mb-8">
+        <div class="flex-1">
+          <input 
+            type="text" 
+            id="search-input"
+            placeholder="Tìm kiếm công cụ..." 
+            class="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
+          />
+        </div>
+        <div class="flex gap-2 flex-wrap">
+          {categories.map((cat) => (
+            <button 
+              class={`px-4 py-2 rounded-full font-medium transition-colors category-btn ${
+                cat.slug === 'all' 
+                  ? 'bg-primary-600 text-white' 
+                  : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-primary-100 dark:hover:bg-primary-900'
+              }`}
+              data-category={cat.slug}
+            >
+              {cat.name}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <!-- Pricing Filter -->
+      <div class="flex flex-wrap gap-2 md:gap-4 mb-8">
+        <label class="flex items-center gap-2 cursor-pointer">
+          <input type="checkbox" class="pricing-filter" value="free" />
+          <span class="px-3 py-1 bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 rounded-full text-sm">Free</span>
+        </label>
+        <label class="flex items-center gap-2 cursor-pointer">
+          <input type="checkbox" class="pricing-filter" value="freemium" />
+          <span class="px-3 py-1 bg-yellow-100 dark:bg-yellow-900 text-yellow-700 dark:text-yellow-300 rounded-full text-sm">Freemium</span>
+        </label>
+        <label class="flex items-center gap-2 cursor-pointer">
+          <input type="checkbox" class="pricing-filter" value="paid" />
+          <span class="px-3 py-1 bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300 rounded-full text-sm">Paid</span>
+        </label>
+      </div>
+
+      <!-- Tools Grid -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6" id="tools-grid">
+        {tools.map((tool) => (
+          <div class="card overflow-hidden tool-card" data-category={tool.category} data-pricing={tool.pricing}>
+            <div class={`h-2 bg-gradient-to-r ${tool.color}`}></div>
+            <div class="p-6">
+              <div class="flex items-start justify-between mb-4">
+                <div>
+                  <h3 class="text-xl font-bold text-gray-900 dark:text-white">{tool.name}</h3>
+                  <span class={`inline-block px-2 py-1 rounded-full text-xs font-medium mt-1 ${
+                    tool.pricing === 'free' ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300' :
+                    tool.pricing === 'freemium' ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300' :
+                    'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300'
+                  }`}>
+                    {tool.pricing === 'free' ? 'Miễn phí' : tool.pricing === 'freemium' ? 'Freemium' : 'Trả phí'}
+                  </span>
+                </div>
+              </div>
+              
+              <p class="text-gray-600 dark:text-gray-400 mb-4 text-sm">
+                {tool.description}
+              </p>
+              
+              <div class="flex flex-wrap gap-2 mb-4">
+                {tool.features.slice(0, 3).map((feature) => (
+                  <span class="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded text-xs">
+                    {feature}
+                  </span>
+                ))}
+              </div>
+              
+              <a 
+                href={tool.website} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                class="inline-flex items-center gap-2 text-primary-600 dark:text-primary-400 font-medium hover:underline"
+              >
+                Truy cập →
+              </a>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+</Layout>

@@ -1,0 +1,101 @@
+---
+// Theme Toggle Component
+---
+
+<button
+  id="theme-toggle"
+  class="relative w-14 h-8 rounded-full bg-gray-200 dark:bg-gray-700 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-primary-500"
+  aria-label="Chuyển đổi chế độ sáng/tối"
+>
+  <span class="sr-only">Chuyển đổi theme</span>
+  
+  <!-- Toggle track -->
+  <span class="absolute inset-1 rounded-full bg-white dark:bg-gray-800 transition-colors duration-300"></span>
+  
+  <!-- Toggle thumb - sun -->
+  <span class="absolute left-1 top-1 w-6 h-6 rounded-full bg-yellow-400 flex items-center justify-center transition-all duration-300 transform group-hover:scale-110">
+    <svg class="w-4 h-4 text-yellow-600" fill="currentColor" viewBox="0 0 20 20">
+      <path fill-rule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clip-rule="evenodd" />
+    </svg>
+  </span>
+  
+  <!-- Toggle thumb - moon -->
+  <span class="absolute right-1 top-1 w-6 h-6 rounded-full bg-gray-600 flex items-center justify-center transition-all duration-300 transform translate-x-0 opacity-0">
+    <svg class="w-4 h-4 text-gray-300" fill="currentColor" viewBox="0 0 20 20">
+      <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z" />
+    </svg>
+  </span>
+</button>
+
+<style>
+  #theme-toggle {
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  #theme-toggle.dark {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  }
+  
+  #theme-toggle.dark .translate-x-0 {
+    transform: translateX(24px);
+  }
+  
+  #theme-toggle.dark span:nth-child(3) {
+    transform: translateX(24px);
+    opacity: 1;
+  }
+  
+  #theme-toggle.dark span:nth-child(2) {
+    opacity: 0;
+  }
+  
+  /* Smooth transition */
+  #theme-toggle span,
+  #theme-toggle::before {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+</style>
+
+<script>
+  // Theme toggle functionality
+  const toggle = document.getElementById('theme-toggle');
+  
+  // Check for saved theme preference or use system preference
+  const getTheme = () => {
+    if (typeof localStorage !== 'undefined' && localStorage.getItem('theme')) {
+      return localStorage.getItem('theme');
+    }
+    if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      return 'dark';
+    }
+    return 'light';
+  };
+  
+  // Set theme
+  const setTheme = (theme: string) => {
+    if (theme === 'dark') {
+      document.documentElement.classList.add('dark');
+      toggle?.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+      toggle?.classList.remove('dark');
+    }
+    localStorage.setItem('theme', theme);
+  };
+  
+  // Initialize theme
+  setTheme(getTheme() || 'light');
+  
+  // Toggle on click
+  toggle?.addEventListener('click', () => {
+    const currentTheme = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
+    setTheme(currentTheme === 'dark' ? 'light' : 'dark');
+  });
+  
+  // Listen for system theme changes
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+    if (!localStorage.getItem('theme')) {
+      setTheme(e.matches ? 'dark' : 'light');
+    }
+  });
+</script>

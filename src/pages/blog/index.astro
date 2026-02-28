@@ -1,0 +1,112 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { getCollection, type CollectionEntry } from 'astro:content';
+
+// Fetch all blog posts
+const allPosts: CollectionEntry<'blog'>[] = await getCollection('blog');
+
+// Sort by date (newest first)
+const sortedPosts = allPosts.sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
+
+// Format date helper
+function formatDate(date: Date) {
+  return date.toLocaleDateString('vi-VN', { 
+    day: '2-digit', 
+    month: '2-digit', 
+    year: 'numeric' 
+  });
+}
+
+// Get unique categories
+const allCategories = allPosts.map(post => post.data.category);
+const uniqueCategories = [...new Set(allCategories)];
+const categories = ['Tất cả', ...uniqueCategories];
+const categoryCounts = categories.map(cat => {
+  if (cat === 'Tất cả') return { name: cat, slug: 'all', count: allPosts.length };
+  return { 
+    name: cat, 
+    slug: cat.toLowerCase().replace(/\s+/g, '-'), 
+    count: allPosts.filter(p => p.data.category === cat).length 
+  };
+});
+---
+
+<Layout title="Blog - NongTech">
+  <section class="py-12 bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
+    <div class="container-custom">
+      <div class="text-center mb-12">
+        <h1 class="text-4xl font-bold text-gray-900 dark:text-white mb-4">Blog NongTech</h1>
+        <p class="text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+          Chia sẻ kiến thức công nghệ, AI và xu hướng số dành cho nông dân yêu công nghệ
+        </p>
+      </div>
+
+      <!-- Category Filter -->
+      <div class="flex flex-wrap gap-2 justify-center mb-12">
+        {categoryCounts.map((category) => (
+          <a 
+            href={`/blog/category/${category.slug}`}
+            class={`px-4 py-2 rounded-full font-medium transition-colors ${
+              category.slug === 'all' 
+                ? 'bg-primary-600 text-white' 
+                : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-primary-100 dark:hover:bg-primary-900'
+            }`}
+          >
+            {category.name}
+            <span class="ml-1 text-sm opacity-75">({category.count})</span>
+          </a>
+        ))}
+      </div>
+
+      <!-- Posts Grid -->
+      {sortedPosts.length > 0 ? (
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8">
+        {sortedPosts.map((post, i) => (
+          <article class="card overflow-hidden">
+            <div class={`h-48 flex items-center justify-center ${
+              ['from-primary-500 to-primary-700', 'from-blue-500 to-blue-700', 'from-green-500 to-green-700', 'from-purple-500 to-purple-700', 'from-orange-500 to-orange-700', 'from-pink-500 to-pink-700'][i % 6]
+            } bg-gradient-to-br`}>
+              <svg class="w-16 h-16 text-white opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+              </svg>
+            </div>
+            <div class="p-6">
+              <div class="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 mb-3">
+                <span class="bg-primary-100 dark:bg-primary-900 text-primary-600 dark:text-primary-400 px-2 py-1 rounded text-xs font-medium">
+                  {post.data.category}
+                </span>
+                <span>•</span>
+                <span>{formatDate(post.data.date)}</span>
+              </div>
+              <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-2 line-clamp-2">
+                {post.data.title}
+              </h3>
+              <p class="text-gray-600 dark:text-gray-400 mb-4 line-clamp-2">
+                {post.data.description}
+              </p>
+              <a href={`/blog/${post.id}`} class="text-primary-600 dark:text-primary-400 font-medium hover:underline">
+                Đọc tiếp →
+              </a>
+            </div>
+          </article>
+        ))}
+      </div>
+      ) : (
+        <div class="text-center py-12">
+          <p class="text-gray-500 dark:text-gray-400 text-lg">Chưa có bài viết nào. Hãy thêm bài viết đầu tiên!</p>
+        </div>
+      )}
+
+      <!-- Pagination (if more than 6 posts) -->
+      {sortedPosts.length > 6 && (
+      <div class="flex justify-center mt-12">
+        <div class="flex gap-2">
+          <span class="px-4 py-2 bg-primary-600 text-white rounded-lg">1</span>
+          <a href="/blog/page/2" class="px-4 py-2 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700">2</a>
+          <a href="/blog/page/2" class="px-4 py-2 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700">→</a>
+        </div>
+      </div>
+      )}
+    </div>
+  </section>
+</Layout>

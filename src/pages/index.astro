@@ -1,0 +1,498 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { getCollection, type CollectionEntry } from 'astro:content';
+
+// Fetch all blog posts
+const allPosts: CollectionEntry<'blog'>[] = await getCollection('blog');
+
+// Sort by date (newest first)
+const sortedPosts = allPosts.sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
+
+// Get featured post (first one marked as featured, or first one)
+const featuredPost = sortedPosts.find(post => post.data.featured) || sortedPosts[0];
+
+// Get 2 secondary featured posts (exclude main featured)
+const secondaryFeatured = sortedPosts.filter(post => post.id !== featuredPost?.id).slice(0, 2);
+
+// Get latest posts (exclude all featured)
+const latestPosts = sortedPosts.filter(post => post.id !== featuredPost?.id && !secondaryFeatured.some(s => s.id === post.id)).slice(0, 9);
+
+// Format date helper
+function formatDate(date: Date) {
+  return date.toLocaleDateString('vi-VN', { 
+    day: '2-digit', 
+    month: '2-digit', 
+    year: 'numeric' 
+  });
+}
+
+// Calculate reading time (rough estimate)
+function getReadingTime(content: string) {
+  const wordsPerMinute = 200;
+  const words = content.split(/\s+/).length;
+  const minutes = Math.ceil(words / wordsPerMinute);
+  return minutes;
+}
+
+// YouTube videos (mock data - can be replaced with real data)
+const youtubeVideos = [
+  { id: 'dQw4w9WgXcQ', title: 'Hướng dẫn sử dụng ChatGPT từ A đến Z', views: '12K', date: '2 ngày trước', duration: '15:30' },
+  { id: 'abc123', title: 'Top 5 công cụ AI miễn phí 2025', views: '8.5K', date: '5 ngày trước', duration: '12:45' },
+  { id: 'def456', title: 'Machine Learning cơ bản cho người mới', views: '15K', date: '1 tuần trước', duration: '20:15' },
+  { id: 'ghi789', title: 'Cách tạo website với Astro', views: '6.2K', date: '2 tuần trước', duration: '18:00' },
+];
+
+// Categories with counts
+const categories = [
+  { name: 'AI', slug: 'ai', count: sortedPosts.filter(p => p.data.category === 'AI').length || 2 },
+  { name: 'Machine Learning', slug: 'ml', count: sortedPosts.filter(p => p.data.category === 'ML').length || 1 },
+  { name: 'Deep Learning', slug: 'dl', count: sortedPosts.filter(p => p.data.category === 'DL').length || 1 },
+  { name: 'AI Tools', slug: 'tools', count: sortedPosts.filter(p => p.data.category === 'Tools').length || 2 },
+  { name: 'Tutorial', slug: 'tutorial', count: sortedPosts.filter(p => p.data.category === 'Tutorial').length || 1 },
+  { name: 'News', slug: 'news', count: sortedPosts.filter(p => p.data.category === 'News').length || 1 },
+];
+
+// Popular posts (mock)
+const popularPosts = sortedPosts.slice(0, 5);
+---
+
+<Layout title="NongTech - Nông dân yêu Công nghệ">
+  <!-- Hero Section -->
+  <section class="relative min-h-[60vh] md:min-h-[75vh] flex items-center justify-center overflow-hidden">
+    <!-- Background -->
+    <div class="absolute inset-0 bg-gradient-to-br from-primary-600 via-primary-700 to-purple-800 dark:from-primary-900 dark:via-gray-900 dark:to-purple-950">
+      <!-- Light Beams -->
+      <div class="absolute top-0 left-0 w-1/2 h-full overflow-hidden">
+        <div class="absolute top-1/4 -left-20 w-[500px] h-[500px] bg-gradient-to-r from-cyan-400/30 to-transparent rounded-full blur-[100px] animate-pulse"></div>
+        <div class="absolute top-1/2 -left-10 w-[300px] h-[300px] bg-gradient-to-r from-blue-400/20 to-transparent rounded-full blur-[80px]"></div>
+      </div>
+      <div class="absolute top-0 right-0 w-1/2 h-full overflow-hidden">
+        <div class="absolute top-1/3 -right-20 w-[500px] h-[500px] bg-gradient-to-l from-purple-400/30 to-transparent rounded-full blur-[100px] animate-pulse" style="animation-delay: 1s;"></div>
+        <div class="absolute top-1/2 -right-10 w-[300px] h-[300px] bg-gradient-to-l from-pink-400/20 to-transparent rounded-full blur-[80px]"></div>
+      </div>
+      
+      <!-- Animated gradient overlay -->
+      <div class="absolute inset-0 bg-gradient-to-t from-primary-600/20 via-transparent to-purple-800/20 animate-pulse" style="animation-duration: 4s;"></div>
+      
+      <!-- Grid pattern -->
+      <div class="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:50px_50px]"></div>
+    </div>
+
+    <div class="container-custom relative z-10 text-center px-4">
+      <!-- Badge -->
+      <div class="inline-flex items-center gap-2 px-4 py-2 bg-white/20 dark:bg-black/20 backdrop-blur-md rounded-full border border-white/30 dark:border-white/10 mb-8">
+        <span class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
+        <span class="text-sm text-white dark:text-gray-300">Cập nhật công nghệ mới nhất cho nông dân</span>
+      </div>
+
+      <!-- Main Title -->
+      <h1 class="text-3xl md:text-4xl lg:text-5xl xl:text-7xl font-bold text-white dark:text-white mb-4 md:mb-6 leading-tight">
+        Khám phá thế giới
+        <span class="block mt-2 bg-gradient-to-r from-primary-300 via-blue-300 to-purple-300 dark:from-primary-400 dark:via-blue-400 dark:to-purple-400 bg-clip-text text-transparent">
+          Nông dân yêu Công nghệ
+        </span>
+      </h1>
+
+      <!-- Subtitle -->
+      <p class="text-lg md:text-xl text-white/80 dark:text-gray-400 mb-10 max-w-3xl mx-auto leading-relaxed">
+        Chia sẻ kiến thức công nghệ, tin tức và xu hướng mới nhất dành cho nông dân yêu công nghệ.
+      </p>
+
+      <!-- CTA Buttons -->
+      <div class="flex flex-col sm:flex-row gap-4 justify-center items-center">
+        <a href="/blog" class="group relative inline-flex items-center gap-3 px-8 py-4 bg-primary-600 hover:bg-primary-500 text-white rounded-full font-semibold text-lg transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-primary-500/25">
+          <span>Đọc Blog</span>
+          <svg class="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+          </svg>
+        </a>
+        <a href="/tools" class="inline-flex items-center gap-3 px-8 py-4 bg-white/20 dark:bg-white/10 hover:bg-white/30 dark:hover:bg-white/20 text-white dark:text-white rounded-full font-semibold text-lg border border-white/30 dark:border-white/20 transition-all duration-300 backdrop-blur-sm">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+          </svg>
+          <span>Khám phá Công cụ AI</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Main Content with Sidebar -->
+  <section class="py-12 bg-gray-50 dark:bg-gray-950">
+    <div class="container-custom">
+      <div class="flex flex-col lg:flex-row gap-8">
+        
+        <!-- Main Content Area -->
+        <div class="flex-1">
+          
+          <!-- Featured Section: 1 Large + 2 Small (Blocksy Style) -->
+          <div class="mb-12">
+            <div class="flex items-center gap-3 mb-6">
+              <div class="w-1 h-10 bg-primary-500 rounded-full"></div>
+              <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Nổi bật</h2>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <!-- Main Featured Post (2 columns) -->
+              {featuredPost && (
+              <div class="lg:col-span-2">
+                <article class="group relative h-full bg-white dark:bg-gray-900 rounded-2xl overflow-hidden border border-gray-200 dark:border-gray-800 hover:border-primary-300 dark:hover:border-primary-600 transition-all hover:shadow-lg">
+                  <!-- Image -->
+                  <div class="h-72 lg:h-80 bg-gradient-to-br from-primary-500 to-purple-600 relative overflow-hidden">
+                    <div class="absolute inset-0 bg-black/10 group-hover:bg-black/5 transition-colors"></div>
+                    <div class="absolute top-4 left-4">
+                      <span class="px-3 py-1 bg-white/90 dark:bg-gray-900/80 text-primary-600 dark:text-primary-400 rounded-full text-sm font-semibold backdrop-blur-sm">
+                        ✨ Nổi bật
+                      </span>
+                    </div>
+                  </div>
+                  
+                  <div class="p-6">
+                    <div class="flex items-center gap-3 text-sm text-gray-500 dark:text-gray-400 mb-3">
+                      <span class="text-primary-600 dark:text-primary-400 font-semibold">{featuredPost.data.category}</span>
+                      <span class="w-1 h-1 bg-gray-400 rounded-full"></span>
+                      <span>{formatDate(featuredPost.data.date)}</span>
+                      <span class="w-1 h-1 bg-gray-400 rounded-full"></span>
+                      <span>{getReadingTime(featuredPost.body || '')} phút đọc</span>
+                    </div>
+                    <h3 class="text-xl md:text-2xl font-bold text-gray-900 dark:text-white mb-3 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
+                      {featuredPost.data.title}
+                    </h3>
+                    <p class="text-gray-600 dark:text-gray-400 mb-4 line-clamp-2">
+                      {featuredPost.data.description}
+                    </p>
+                    <a href={`/blog/${featuredPost.id}`} class="inline-flex items-center gap-2 text-primary-600 dark:text-primary-400 font-semibold group-hover:gap-3 transition-all">
+                      Đọc tiếp 
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+                      </svg>
+                    </a>
+                  </div>
+                </article>
+              </div>
+              )}
+              
+              <!-- Secondary Featured Posts (1 column, 2 rows) -->
+              <div class="lg:col-span-1 flex flex-col gap-4">
+                {secondaryFeatured.map((post, index) => (
+                  <article class="group flex-1 bg-white dark:bg-gray-900 rounded-xl overflow-hidden border border-gray-200 dark:border-gray-800 hover:border-primary-300 dark:hover:border-primary-600 transition-all hover:shadow-md">
+                    <div class="flex h-full">
+                      <!-- Image -->
+                      <div class={`w-1/3 min-w-[100px] ${['from-blue-500 to-blue-600', 'from-green-500 to-green-600', 'from-orange-500 to-orange-600', 'from-pink-500 to-pink-600'][index % 4]} bg-gradient-to-br`}></div>
+                      
+                      <!-- Content -->
+                      <div class="flex-1 p-4 flex flex-col justify-center">
+                        <div class="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400 mb-2">
+                          <span>{formatDate(post.data.date)}</span>
+                        </div>
+                        <h3 class="text-sm font-bold text-gray-900 dark:text-white mb-2 line-clamp-2 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
+                          {post.data.title}
+                        </h3>
+                        <span class="text-xs text-primary-600 dark:text-primary-400 font-medium">{post.data.category}</span>
+                      </div>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <!-- Blog Posts Grid -->
+          <div class="mb-12">
+            <div class="flex items-center justify-between mb-6">
+              <div class="flex items-center gap-3">
+                <div class="w-1 h-10 bg-primary-500 rounded-full"></div>
+                <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Bài viết mới nhất</h2>
+              </div>
+              <a href="/blog" class="text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 font-medium flex items-center gap-1">
+                Xem tất cả 
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                </svg>
+              </a>
+            </div>
+
+            {latestPosts.length > 0 ? (
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {latestPosts.map((post, index) => (
+                <article class="group bg-white dark:bg-gray-900 rounded-xl overflow-hidden border border-gray-200 dark:border-gray-800 hover:border-primary-300 dark:hover:border-primary-600 transition-all hover:-translate-y-1 hover:shadow-lg">
+                  <!-- Image -->
+                  <div class={`h-44 relative overflow-hidden ${
+                    ['from-blue-500 to-blue-600', 'from-green-500 to-green-600', 'from-orange-500 to-orange-600', 'from-pink-500 to-pink-600', 'from-indigo-500 to-indigo-600', 'from-teal-500 to-teal-600'][index % 6]
+                  } bg-gradient-to-br`}>
+                    <div class="absolute inset-0 bg-black/10 group-hover:bg-black/5 transition-colors"></div>
+                    <div class="absolute top-3 left-3">
+                      <span class={`px-2 py-1 rounded-full text-xs font-semibold bg-white/90 dark:bg-gray-900/80 ${['text-blue-600', 'text-green-600', 'text-orange-600', 'text-pink-600', 'text-indigo-600', 'text-teal-600'][index % 6]}`}>
+                        {post.data.category}
+                      </span>
+                    </div>
+                  </div>
+                  
+                  <div class="p-5">
+                    <div class="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400 mb-2">
+                      <span>{formatDate(post.data.date)}</span>
+                      <span class="w-1 h-1 bg-gray-400 rounded-full"></span>
+                      <span>{getReadingTime(post.body || '')} phút</span>
+                    </div>
+                    <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-2 line-clamp-2 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
+                      {post.data.title}
+                    </h3>
+                    <p class="text-gray-600 dark:text-gray-400 text-sm line-clamp-2 mb-4">
+                      {post.data.description}
+                    </p>
+                    <a href={`/blog/${post.id}`} class="text-primary-600 dark:text-primary-400 text-sm font-semibold group-hover:underline">
+                      Đọc tiếp →
+                    </a>
+                  </div>
+                </article>
+              ))}
+            </div>
+            ) : (
+            <div class="text-center py-12 bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800">
+              <p class="text-gray-500 dark:text-gray-400">Chưa có bài viết nào.</p>
+            </div>
+            )}
+
+            <!-- Load More -->
+            {sortedPosts.length > 0 && (
+            <div class="text-center mt-8">
+              <a href="/blog" class="inline-flex items-center gap-2 px-8 py-3 bg-gray-900 dark:bg-white hover:bg-gray-800 dark:hover:bg-gray-100 text-white dark:text-gray-900 rounded-full font-semibold transition-all hover:scale-105">
+                Xem tất cả bài viết
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+                </svg>
+              </a>
+            </div>
+            )}
+          </div>
+
+          <!-- YouTube Videos Section -->
+          <div class="mb-12">
+            <div class="flex items-center justify-between mb-6">
+              <div class="flex items-center gap-3">
+                <div class="w-1 h-10 bg-red-500 rounded-full"></div>
+                <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Video mới nhất</h2>
+              </div>
+              <a href="https://youtube.com/@nongtech" target="_blank" rel="noopener noreferrer" class="flex items-center gap-2 text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 font-medium">
+                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                </svg>
+                Kênh YouTube
+              </a>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {youtubeVideos.map((video) => (
+                <div class="group bg-white dark:bg-gray-900 rounded-xl overflow-hidden border border-gray-200 dark:border-gray-800 hover:border-red-300 dark:hover:border-red-700 transition-all hover:-translate-y-1 hover:shadow-lg">
+                  <!-- Video Thumbnail -->
+                  <div class="relative h-36 bg-gradient-to-br from-gray-800 to-gray-900 overflow-hidden cursor-pointer">
+                    <div class="absolute inset-0 bg-black/30 group-hover:bg-black/20 transition-colors"></div>
+                    <div class="absolute inset-0 flex items-center justify-center">
+                      <div class="w-12 h-12 bg-red-600 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform shadow-lg shadow-red-600/40">
+                        <svg class="w-4 h-4 text-white ml-0.5" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M8 5v14l11-7z"/>
+                        </svg>
+                      </div>
+                    </div>
+                    <div class="absolute bottom-2 right-2 px-2 py-1 bg-black/80 text-white text-xs font-medium rounded">
+                      {video.duration}
+                    </div>
+                  </div>
+                  
+                  <div class="p-4">
+                    <h3 class="text-sm font-bold text-gray-900 dark:text-white mb-2 line-clamp-2 group-hover:text-red-600 dark:group-hover:text-red-400 transition-colors">
+                      {video.title}
+                    </h3>
+                    <div class="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+                      <span>{video.views} lượt xem</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <!-- Categories Section -->
+          <div>
+            <div class="flex items-center gap-3 mb-6">
+              <div class="w-1 h-10 bg-primary-500 rounded-full"></div>
+              <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Chuyên mục</h2>
+            </div>
+
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              {categories.map((cat, index) => (
+                <a href={`/blog/category/${cat.slug}`} class="group p-4 bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 hover:border-primary-300 dark:hover:border-primary-600 transition-all hover:-translate-y-1 hover:shadow-md text-center">
+                  <div class={`w-10 h-10 mx-auto mb-3 bg-gradient-to-br ${['from-blue-500 to-blue-600', 'from-green-500 to-green-600', 'from-purple-500 to-purple-600', 'from-orange-500 to-orange-600', 'from-pink-500 to-pink-600', 'from-teal-500 to-teal-600'][index % 6]} rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform`}>
+                    <span class="text-lg">{['🤖', '🧠', '🔮', '🛠️', '📚', '📰'][index]}</span>
+                  </div>
+                  <h3 class="text-sm font-semibold text-gray-900 dark:text-white mb-1">{cat.name}</h3>
+                  <p class="text-xs text-gray-500 dark:text-gray-400">{cat.count} bài</p>
+                </a>
+              ))}
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Sidebar (Sticky) -->
+        <aside class="w-full lg:w-80 shrink-0">
+          <div class="lg:sticky lg:top-24 space-y-6">
+            
+            <!-- Search Widget -->
+            <div class="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-5">
+              <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4">Tìm kiếm</h3>
+              <form action="/search" method="GET" class="flex">
+                <input 
+                  type="text" 
+                  name="q"
+                  placeholder="Tìm bài viết..." 
+                  class="flex-1 px-4 py-2 rounded-l-lg bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white text-sm focus:outline-none focus:border-primary-500"
+                />
+                <button type="submit" class="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-r-lg transition-colors">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                  </svg>
+                </button>
+              </form>
+            </div>
+
+            <!-- Categories Widget -->
+            <div class="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-5">
+              <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4">Chuyên mục</h3>
+              <ul class="space-y-2">
+                {categories.map((cat) => (
+                  <li>
+                    <a href={`/blog/category/${cat.slug}`} class="flex items-center justify-between py-2 px-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors group">
+                      <span class="text-gray-700 dark:text-gray-300 group-hover:text-primary-600 dark:group-hover:text-primary-400">{cat.name}</span>
+                      <span class="text-sm text-gray-500 dark:text-gray-400">({cat.count})</span>
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <!-- Popular Posts Widget -->
+            <div class="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-5">
+              <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4">Bài phổ biến</h3>
+              <div class="space-y-4">
+                {popularPosts.map((post, index) => (
+                  <a href={`/blog/${post.id}`} class="flex items-start gap-3 group">
+                    <span class="text-2xl font-bold text-gray-200 dark:text-gray-700 group-hover:text-primary-500 transition-colors">{index + 1}</span>
+                    <div>
+                      <h4 class="text-sm font-semibold text-gray-900 dark:text-white line-clamp-2 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
+                        {post.data.title}
+                      </h4>
+                      <span class="text-xs text-gray-500 dark:text-gray-400">{formatDate(post.data.date)}</span>
+                    </div>
+                  </a>
+                ))}
+              </div>
+            </div>
+
+            <!-- Newsletter Widget -->
+            <div class="bg-gradient-to-br from-primary-600 to-purple-700 rounded-2xl p-5 text-white">
+              <h3 class="text-lg font-bold mb-2">Đăng ký nhận tin</h3>
+              <p class="text-sm text-white/80 mb-4">Nhận bài viết mới nhất vào email của bạn.</p>
+              <form class="space-y-3">
+                <input 
+                  type="email" 
+                  placeholder="Email của bạn" 
+                  class="w-full px-4 py-2 rounded-lg bg-white/20 backdrop-blur-sm border border-white/30 text-white placeholder-white/60 text-sm focus:outline-none focus:bg-white/30"
+                />
+                <button type="submit" class="w-full px-4 py-2 bg-white text-primary-600 font-semibold rounded-lg hover:bg-white/90 transition-colors text-sm">
+                  Đăng ký
+                </button>
+              </form>
+            </div>
+
+            <!-- Tags Widget -->
+            <div class="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-5">
+              <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4">Tags</h3>
+              <div class="flex flex-wrap gap-2">
+                {['AI', 'Machine Learning', 'ChatGPT', 'Python', 'Data Science', 'Web Dev', 'Mobile', 'Cloud'].map((tag) => (
+                  <a href={`/blog/tag/${tag.toLowerCase().replace(' ', '-')}`} class="px-3 py-1 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 text-sm rounded-full hover:bg-primary-100 dark:hover:bg-primary-900 hover:text-primary-600 dark:hover:text-primary-400 transition-colors">
+                    {tag}
+                  </a>
+                ))}
+              </div>
+            </div>
+
+            <!-- Ad Placeholder Widget -->
+            <div class="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-5 text-center">
+              <div class="h-48 bg-gray-100 dark:bg-gray-800 rounded-lg flex items-center justify-center">
+                <span class="text-gray-400 dark:text-gray-500 text-sm">Quảng cáo 300x250</span>
+              </div>
+            </div>
+
+            <!-- Social Links Widget -->
+            <div class="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-5">
+              <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4">Theo dõi</h3>
+              <div class="flex justify-center gap-3">
+                <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" class="w-10 h-10 bg-blue-600 hover:bg-blue-700 rounded-full flex items-center justify-center text-white transition-colors">
+                  <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                  </svg>
+                </a>
+                <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" class="w-10 h-10 bg-sky-500 hover:bg-sky-600 rounded-full flex items-center justify-center text-white transition-colors">
+                  <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                  </svg>
+                </a>
+                <a href="https://youtube.com" target="_blank" rel="noopener noreferrer" class="w-10 h-10 bg-red-600 hover:bg-red-700 rounded-full flex items-center justify-center text-white transition-colors">
+                  <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                  </svg>
+                </a>
+                <a href="https://github.com" target="_blank" rel="noopener noreferrer" class="w-10 h-10 bg-gray-800 hover:bg-gray-900 rounded-full flex items-center justify-center text-white transition-colors">
+                  <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                  </svg>
+                </a>
+              </div>
+            </div>
+
+          </div>
+        </aside>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- Newsletter Section (Bottom) -->
+  <section class="py-16 bg-gradient-to-br from-primary-600 via-primary-700 to-purple-700 dark:from-primary-900 dark:via-purple-900 dark:to-gray-950 relative overflow-hidden">
+    <!-- Background Effects -->
+    <div class="absolute top-0 left-0 w-1/3 h-full overflow-hidden">
+      <div class="absolute top-1/2 -left-20 w-[400px] h-[400px] bg-gradient-to-r from-cyan-400/20 to-transparent rounded-full blur-[80px]"></div>
+    </div>
+    <div class="absolute top-0 right-0 w-1/3 h-full overflow-hidden">
+      <div class="absolute top-1/3 -right-20 w-[400px] h-[400px] bg-gradient-to-l from-pink-400/20 to-transparent rounded-full blur-[80px]"></div>
+    </div>
+    
+    <div class="container-custom relative text-center px-4">
+      <div class="inline-flex items-center gap-2 px-4 py-2 bg-white/20 rounded-full mb-6">
+        <span class="w-2 h-2 bg-white rounded-full animate-pulse"></span>
+        <span class="text-white/90 text-sm font-medium">Miễn phí</span>
+      </div>
+      
+      <h2 class="text-2xl md:text-4xl font-bold text-white mb-4">
+        Đăng ký nhận bài viết mới
+      </h2>
+      <p class="text-lg md:text-xl text-white/80 mb-8 max-w-2xl mx-auto">
+        Nhận thông báo khi có bài viết mới về AI và công nghệ.
+      </p>
+      
+      <form class="flex flex-col sm:flex-row gap-4 justify-center max-w-lg mx-auto">
+        <input 
+          type="email" 
+          placeholder="Nhập email của bạn" 
+          class="flex-1 px-6 py-4 rounded-full text-gray-900 focus:outline-none focus:ring-4 focus:ring-white/30"
+        />
+        <button type="submit" class="px-8 py-4 bg-gray-900 hover:bg-gray-800 text-white rounded-full font-semibold transition-all hover:scale-105 shadow-lg">
+          Đăng ký
+        </button>
+      </form>
+      
+      <p class="text-white/60 text-sm mt-4">Không spam, chỉ gửi khi có bài viết mới!</p>
+    </div>
+  </section>
+</Layout>

@@ -1,0 +1,141 @@
+---
+import '../styles/global.css';
+import ThemeToggle from './components/ThemeToggle.astro';
+
+interface Props {
+  title: string;
+  description?: string;
+}
+
+const { title, description = 'NongTech - Nông dân yêu công nghệ, chia sẻ kiến thức công nghệ, AI và xu hướng số' } = Astro.props;
+---
+
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content={description} />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <title>{title}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script is:inline>
+      // Prevent flash of wrong theme
+      const theme = localStorage.getItem('theme');
+      if (theme === 'dark' || (!theme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        document.documentElement.classList.add('dark');
+      }
+    </script>
+  </head>
+  <body class="min-h-screen flex flex-col">
+    <!-- Header -->
+    <header class="sticky top-0 z-50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-b border-gray-200 dark:border-gray-700">
+      <nav class="container-custom">
+        <div class="flex items-center justify-between h-16">
+          <!-- Logo -->
+          <a href="/" class="flex items-center gap-2">
+            <div class="w-8 h-8 bg-gradient-to-br from-primary-500 to-primary-700 rounded-lg flex items-center justify-center">
+              <span class="text-white font-bold text-lg">AI</span>
+            </div>
+            <span class="font-bold text-xl text-gray-900 dark:text-white">NongTech</span>
+          </a>
+          
+          <!-- Desktop Menu -->
+          <div class="hidden md:flex items-center gap-8">
+            <a href="/blog" class="text-gray-600 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 font-medium transition-colors">Blog</a>
+            <a href="/tools" class="text-gray-600 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 font-medium transition-colors">Công cụ AI</a>
+            <a href="/about" class="text-gray-600 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 font-medium transition-colors">Giới thiệu</a>
+            <a href="/contact" class="text-gray-600 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 font-medium transition-colors">Liên hệ</a>
+            <ThemeToggle />
+          </div>
+          
+          <!-- Mobile Menu Button -->
+          <button id="mobile-menu-btn" class="md:hidden p-2 text-gray-600 dark:text-gray-300">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+            </svg>
+          </button>
+        </div>
+        
+        <!-- Mobile Menu -->
+        <div id="mobile-menu" class="hidden md:hidden pb-4">
+          <div class="flex flex-col gap-4">
+            <a href="/" class="text-gray-600 dark:text-gray-300 hover:text-primary-600 font-medium">Trang chủ</a>
+            <a href="/blog" class="text-gray-600 dark:text-gray-300 hover:text-primary-600 font-medium">Blog</a>
+            <a href="/tools" class="text-gray-600 dark:text-gray-300 hover:text-primary-600 font-medium">Công cụ AI</a>
+            <a href="/about" class="text-gray-600 dark:text-gray-300 hover:text-primary-600 font-medium">Giới thiệu</a>
+            <a href="/contact" class="text-gray-600 dark:text-gray-300 hover:text-primary-600 font-medium">Liên hệ</a>
+            <div class="pt-3 mt-1 border-t border-gray-200 dark:border-gray-700 flex items-center justify-between">
+              <span class="text-sm text-gray-500 dark:text-gray-400">Chế độ sáng/tối</span>
+              <ThemeToggle />
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-grow">
+      <slot />
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-gray-400 py-12">
+      <div class="container-custom">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+          <!-- Brand -->
+          <div class="col-span-1 md:col-span-2">
+            <div class="flex items-center gap-2 mb-4">
+              <div class="w-8 h-8 bg-gradient-to-br from-primary-500 to-primary-700 rounded-lg flex items-center justify-center">
+                <span class="text-white font-bold text-lg">AI</span>
+              </div>
+              <span class="font-bold text-xl text-white">NongTech</span>
+            </div>
+            <p class="text-sm leading-relaxed">
+              Chia sẻ kiến thức về Trí tuệ nhân tạo, Machine Learning, và các công cụ AI tiên tiến. 
+              Giúp bạn cập nhật những xu hướng công nghệ mới nhất.
+            </p>
+          </div>
+          
+          <!-- Quick Links -->
+          <div>
+            <h3 class="text-white font-semibold mb-4">Liên kết</h3>
+            <ul class="space-y-2">
+              <li><a href="/blog" class="hover:text-primary-400 transition-colors">Blog</a></li>
+              <li><a href="/tools" class="hover:text-primary-400 transition-colors">Công cụ AI</a></li>
+              <li><a href="/about" class="hover:text-primary-400 transition-colors">Giới thiệu</a></li>
+              <li><a href="/contact" class="hover:text-primary-400 transition-colors">Liên hệ</a></li>
+            </ul>
+          </div>
+          
+          <!-- Categories -->
+          <div>
+            <h3 class="text-white font-semibold mb-4">Danh mục</h3>
+            <ul class="space-y-2">
+              <li><a href="/blog/category/ai" class="hover:text-primary-400 transition-colors">Artificial Intelligence</a></li>
+              <li><a href="/blog/category/ml" class="hover:text-primary-400 transition-colors">Machine Learning</a></li>
+              <li><a href="/blog/category/tools" class="hover:text-primary-400 transition-colors">AI Tools</a></li>
+              <li><a href="/blog/category/tutorial" class="hover:text-primary-400 transition-colors">Hướng dẫn</a></li>
+            </ul>
+          </div>
+        </div>
+        
+        <div class="border-t border-gray-800 mt-8 pt-8 text-center text-sm">
+          <p>&copy; {new Date().getFullYear()} NongTech. All rights reserved.</p>
+        </div>
+      </div>
+    </footer>
+
+    <script>
+      // Mobile menu toggle
+      const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+      const mobileMenu = document.getElementById('mobile-menu');
+      
+      mobileMenuBtn?.addEventListener('click', () => {
+        mobileMenu?.classList.toggle('hidden');
+      });
+    </script>
+  </body>
+</html>
