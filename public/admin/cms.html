@@ -3,47 +3,211 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Content Manager - NongTech</title>
+  <title>NongTech CMS - Quản lý bài viết</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { font-family: system-ui, -apple-system, sans-serif; margin: 0; padding: 20px; background: #f5f5f5; }
+    .container { max-width: 1000px; margin: 0 auto; }
+    h1 { color: #333; }
+    .btn { background: #0969da; color: white; padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; text-decoration: none; display: inline-block; }
+    .btn:hover { background: #0856b8; }
+    .btn-danger { background: #cf222e; }
+    .btn-danger:hover { background: #b52a30; }
+    .post { background: white; padding: 20px; margin-bottom: 20px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+    .post h2 { margin: 0 0 10px; }
+    .post-meta { color: #666; font-size: 14px; margin-bottom: 10px; }
+    .actions { margin-top: 15px; }
+    .logout { float: right; color: #666; }
+    .editor { display: none; }
+    .editor.active { display: block; }
+    textarea { width: 100%; height: 400px; font-family: monospace; padding: 10px; border: 1px solid #ddd; border-radius: 6px; }
+    .form-group { margin-bottom: 15px; }
+    label { display: block; margin-bottom: 5px; font-weight: 500; }
+    input[type="text"], input[type="datetime-local"] { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 6px; }
+    .error { color: red; padding: 10px; background: #ffe6e6; border-radius: 6px; margin-bottom: 20px; }
+    .loading { text-align: center; padding: 40px; color: #666; }
+  </style>
 </head>
 <body>
-  <script src="https://unpkg.com/decap-cms@^3.0.0/dist/decap-cms.js"></script>
+  <div class="container">
+    <a href="/admin/" class="logout" onclick="logout()">Đăng xuất</a>
+    <h1>NongTech CMS</h1>
+    <div id="app">
+      <div class="loading">Đang tải...</div>
+    </div>
+  </div>
+
   <script>
-    // Get token from URL hash or localStorage
-    const hash = window.location.hash;
+    const REPO = 'duyvl86/blogai';
+    const BRANCH = 'main';
+    const API_BASE = 'https://api.github.com';
+    
     let token = localStorage.getItem('github_token');
+    let posts = [];
     
-    // Check for token in URL (from OAuth callback)
-    if (hash && hash.includes('token=')) {
-      token = hash.split('token=')[1].split('&')[0];
-      localStorage.setItem('github_token', token);
-      // Clean URL
-      window.location.hash = '';
+    // Check auth
+    if (!token) {
+      window.location.href = '/admin/';
     }
     
-    // Inject token into CMS config
-    if (token && window.CMS) {
-      // We'll modify the config loading
-      const originalFetch = window.fetch;
-      window.fetch = function(url, options) {
-        if (url.includes('config.yml')) {
-          return originalFetch(url, options).then(response => {
-            return response.text().then(text => {
-              // Add token to backend config
-              const config = text.replace(
-                'backend:',
-                'backend:\n  token: ' + token
-              );
-              return new Response(config, {
-                status: response.status,
-                statusText: response.statusText,
-                headers: response.headers
-              });
-            });
-          });
-        }
-        return originalFetch(url, options);
-      };
+    const headers = {
+      'Authorization': 'token ' + token,
+      'Accept': 'application/vnd.github.v3+json'
+    };
+    
+    async function apiCall(url, options = {}) {
+      const response = await fetch(API_BASE + url, {
+        ...options,
+        headers: { ...headers, ...options.headers }
+      });
+      if (!response.ok) {
+        const err = await response.json();
+        throw new Error(err.message || 'API Error');
+      }
+      return response.json();
     }
+    
+    async function loadPosts() {
+      try {
+        const files = await apiCall(`/repos/${REPO}/contents/src/content/blog?ref=${BRANCH}`);
+        posts = files.filter(f => f.name.endsWith('.md') || f.name.endsWith('.mdx'));
+        renderPostList();
+      } catch (e) {
+        document.getElementById('app').innerHTML = `<div class="error">Lỗi: ${e.message}</div>`;
+      }
+    }
+    
+    function renderPostList() {
+      let html = '<div style="margin-bottom: 20px;"><button class="btn" onclick="showNewPost()">+ Bài viết mới</button></div>';
+      
+      if (posts.length === 0) {
+        html += '<p>Chưa có bài viết nào.</p>';
+      }
+      
+      for (const post of posts) {
+        const title = post.name.replace('.md', '').replace('.mdx', '').replace(/-/g, ' ');
+        html += `
+          <div class="post">
+            <h2>${title}</h2>
+            <div class="actions">
+              <button class="btn" onclick="editPost('${post.name}')">Sửa</button>
+              <button class="btn btn-danger" onclick="deletePost('${post.name}')">Xóa</button>
+            </div>
+          </div>
+        `;
+      }
+      
+      document.getElementById('app').innerHTML = html;
+    }
+    
+    async function showNewPost() {
+      const title = prompt('Nhập tiêu đề bài viết (sẽ tạo slug tự động):');
+      if (!title) return;
+      
+      const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+      const date = new Date().toISOString().split('T')[0];
+      const content = `---
+title: "${title}"
+description: ""
+pubDate: ${date}
+heroImage: "/images/blog-placeholder.jpg"
+---
+
+# ${title}
+
+Viết nội dung bài viết tại đây...
+`;
+      
+      try {
+        await apiCall(`/repos/${REPO}/contents/src/content/blog/${slug}.md`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            message: `Create new post: ${slug}`,
+            content: btoa(unescape(encodeURIComponent(content))),
+            branch: BRANCH
+          })
+        });
+        alert('Tạo bài viết thành công!');
+        loadPosts();
+      } catch (e) {
+        alert('Lỗi: ' + e.message);
+      }
+    }
+    
+    async function editPost(filename) {
+      try {
+        const file = await apiCall(`/repos/${REPO}/contents/src/content/blog/${filename}?ref=${BRANCH}`);
+        const content = decodeURIComponent(escape(atob(file.content)));
+        
+        document.getElementById('app').innerHTML = `
+          <div class="editor active">
+            <h2>Sửa: ${filename}</h2>
+            <div class="form-group">
+              <label>Nội dung (Markdown):</label>
+              <textarea id="editor">${content}</textarea>
+            </div>
+            <button class="btn" onclick="savePost('${filename}')">Lưu</button>
+            <button class="btn" onclick="loadPosts()" style="background: #666;">Hủy</button>
+          </div>
+        `;
+      } catch (e) {
+        alert('Lỗi: ' + e.message);
+      }
+    }
+    
+    async function savePost(filename) {
+      const content = document.getElementById('editor').value;
+      
+      try {
+        // Get current file SHA
+        const file = await apiCall(`/repos/${REPO}/contents/src/content/blog/${filename}?ref=${BRANCH}`);
+        
+        await apiCall(`/repos/${REPO}/contents/src/content/blog/${filename}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            message: `Update post: ${filename}`,
+            content: btoa(unescape(encodeURIComponent(content))),
+            branch: BRANCH,
+            sha: file.sha
+          })
+        });
+        alert('Lưu thành công!');
+        loadPosts();
+      } catch (e) {
+        alert('Lỗi: ' + e.message);
+      }
+    }
+    
+    async function deletePost(filename) {
+      if (!confirm('Bạn có chắc muốn xóa bài viết này?')) return;
+      
+      try {
+        const file = await apiCall(`/repos/${REPO}/contents/src/content/blog/${filename}?ref=${BRANCH}`);
+        
+        await apiCall(`/repos/${REPO}/contents/src/content/blog/${filename}`, {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            message: `Delete post: ${filename}`,
+            branch: BRANCH,
+            sha: file.sha
+          })
+        });
+        alert('Xóa thành công!');
+        loadPosts();
+      } catch (e) {
+        alert('Lỗi: ' + e.message);
+      }
+    }
+    
+    function logout() {
+      localStorage.removeItem('github_token');
+    }
+    
+    // Load posts on init
+    loadPosts();
   </script>
 </body>
 </html>
