@@ -4,6 +4,7 @@ backend:
   branch: main
   base_url: https://cms-oauth.duynguyendev.workers.dev
   api_root: https://api.github.com
+  external_oauth_server: true
 
 media_folder: "public/images"
 public_folder: "/images"
