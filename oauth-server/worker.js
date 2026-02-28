@@ -44,9 +44,11 @@ export default {
           return new Response('Failed to get access token', { status: 400 });
         }
 
+        // Get the origin from the request to redirect back
+        const origin = url.searchParams.get('origin') || 'https://blogai-d0p.pages.dev';
+        
         // Redirect back to CMS admin with token
-        // Use 307 to preserve the token in redirect
-        return Response.redirect(`https://blogai-d0p.pages.dev/admin/?token=${accessToken}`, 302);
+        return Response.redirect(`${origin}/admin/index.html?token=${accessToken}#login`, 302);
         
       } catch (error) {
         return new Response('Error: ' + error.message, { status: 500 });
@@ -55,7 +57,8 @@ export default {
 
     // Auth redirect - start OAuth flow
     if (url.pathname === '/auth' || url.pathname === '/login') {
-      const redirectUri = `https://cms-oauth.duynguyendev.workers.dev/oauth`;
+      const origin = url.searchParams.get('origin') || 'https://blogai-d0p.pages.dev';
+      const redirectUri = `https://cms-oauth.duynguyendev.workers.dev/oauth?origin=${encodeURIComponent(origin)}`;
       const authUrl = `https://github.com/login/oauth/authorize?client_id=${env.GITHUB_CLIENT_ID}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=repo&allow_signup=true`;
       
       console.log('Redirecting to GitHub:', authUrl);
