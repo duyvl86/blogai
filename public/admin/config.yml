@@ -3,6 +3,7 @@ backend:
   repo: duyvl86/blogai
   branch: main
   base_url: https://cms-oauth.duynguyendev.workers.dev
+  api_root: https://api.github.com
 
 media_folder: "public/images"
 public_folder: "/images"
