@@ -41,3 +41,5 @@ Công cụ AI của Google giúp tìm kiếm thông tin về thời tiết, giá
 ## Kết luận
 
 AI không phải là công nghệ xa vời. Nông dân hoàn toàn có thể sử dụng AI để cải thiện cuộc sống và công việc hàng ngày. Hãy bắt đầu từ những công cụ đơn giản nhất!
+
+Update .....
