@@ -38,8 +38,6 @@
     .loading { text-align: center; padding: 40px; color: #666; }
     .info-box { background: #e8f4fd; border: 1px solid #0969da; border-radius: 6px; padding: 15px; margin-bottom: 20px; }
     .help-text { color: #666; font-size: 12px; margin-top: 4px; }
-    .preview { background: white; border: 1px solid #ddd; border-radius: 6px; padding: 15px; margin-top: 15px; max-height: 300px; overflow-y: auto; }
-    .preview h3 { margin-top: 0; }
   </style>
 </head>
 <body>
@@ -88,22 +86,22 @@
         const files = await apiCall(`/repos/${REPO}/contents/src/content/blog?ref=${BRANCH}`);
         posts = files.filter(f => f.name.endsWith('.md') || f.name.endsWith('.mdx'));
         
-        // Load posts to get metadata
         for (let post of posts) {
           try {
             const content = await apiCall(`/repos/${REPO}/contents/${post.path}?ref=${BRANCH}`);
             const decoded = decodeURIComponent(escape(atob(content.content)));
             post.fullContent = decoded;
-            // Extract frontmatter
             const match = decoded.match(/^---\n([\s\S]*?)\n---/);
             if (match) {
               const fm = match[1];
               post.title = fm.match(/title:\s*["']?(.*?)["']?\s*$/m)?.[1] || post.name;
               post.description = fm.match(/description:\s*["']?(.*?)["']?\s*$/m)?.[1] || '';
-              post.pubDate = fm.match(/pubDate:\s*(.*?)\s*$/m)?.[1] || '';
-              post.category = fm.match(/category:\s*["']?(.*?)["']?\s*$/m)?.[1] || '';
+              post.date = fm.match(/date:\s*(.*?)\s*$/m)?.[1] || '';
+              post.category = fm.match(/category:\s*["']?(.*?)["']?\s*$/m)?.[1] || 'ai';
               post.tags = fm.match(/tags:\s*\[(.*?)\]/m)?.[1]?.split(',').map(t => t.trim().replace(/["']/g, '')) || [];
-              post.heroImage = fm.match(/heroImage:\s*["']?(.*?)["']?\s*$/m)?.[1] || '';
+              post.image = fm.match(/image:\s*["']?(.*?)["']?\s*$/m)?.[1] || '';
+              post.author = fm.match(/author:\s*["']?(.*?)["']?\s*$/m)?.[1] || 'Admin';
+              post.featured = fm.match(/featured:\s*(.*?)\s*$/m)?.[1]?.trim() === 'true';
             }
           } catch (e) {
             post.title = post.name.replace('.md', '').replace('.mdx', '');
@@ -119,8 +117,7 @@
     function renderPostList() {
       let html = `
         <div class="info-box">
-          <strong>Lưu ý:</strong> Sau khi tạo/sửa bài viết, Cloudflare sẽ tự động deploy trong vài phút.
-          Hoặc bạn có thể trigger deploy thủ công tại GitHub Actions.
+          <strong>Lưu ý:</strong> Sau khi tạo/sửa bài viết, GitHub Actions sẽ tự động deploy trong vài phút.
         </div>
         <div style="margin-bottom: 20px;">
           <button class="btn" onclick="showNewPost()">+ Bài viết mới</button>
@@ -134,7 +131,7 @@
       
       for (const post of posts) {
         const title = post.title || post.name.replace('.md', '').replace('.mdx', '').replace(/-/g, ' ');
-        const date = post.pubDate ? new Date(post.pubDate).toLocaleDateString('vi-VN') : '';
+        const date = post.date ? new Date(post.date).toLocaleDateString('vi-VN') : 'Chưa có ngày';
         
         html += `
           <div class="post">
@@ -142,6 +139,7 @@
             <div class="post-meta">
               <span>📅 ${date}</span>
               <span>📁 ${post.category || 'Chưa phân loại'}</span>
+              <span>✍️ ${post.author || 'Admin'}</span>
             </div>
             <p>${post.description || 'Không có mô tả'}</p>
             <div class="tags">
@@ -183,20 +181,25 @@
           <div class="form-row">
             <div class="form-group">
               <label>Ngày đăng:</label>
-              <input type="datetime-local" id="pubDate" value="${date}T12:00">
+              <input type="datetime-local" id="date" value="${date}T12:00">
             </div>
             <div class="form-group">
-              <label>Danh mục:</label>
-              <select id="category">
-                ${categories.map(c => `<option value="${c}">${c}</option>`).join('')}
-              </select>
+              <label>Tác giả:</label>
+              <input type="text" id="author" value="Admin">
             </div>
           </div>
           
-          <div class="form-group">
-            <label>Tags (phân cách bằng dấu phẩy):</label>
-            <input type="text" id="tags" placeholder="AI, Machine Learning, Python...">
-            <div class="help-text">Gợi ý: ${tags.join(', ')}</div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Danh mục:</label>
+              <select id="category">
+                ${categories.map(c => `<option value="${c.toLowerCase()}">${c}</option>`).join('')}
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Tags (phân cách bằng dấu phẩy):</label>
+              <input type="text" id="tags" placeholder="AI, Machine Learning, Python...">
+            </div>
           </div>
           
           <div class="form-group">
@@ -206,7 +209,7 @@
           
           <div class="form-group">
             <label>Ảnh đại diện (URL):</label>
-            <input type="text" id="heroImage" placeholder="/images/blog-placeholder.jpg">
+            <input type="text" id="image" placeholder="/images/blog-placeholder.jpg">
           </div>
           
           <div class="form-group">
@@ -236,20 +239,23 @@ Viết kết luận tại đây...
     async function createPost() {
       const title = document.getElementById('title').value;
       const slug = document.getElementById('slug').value;
-      const pubDate = document.getElementById('pubDate').value.replace('T', ' ');
+      const date = document.getElementById('date').value.replace('T', ' ');
+      const author = document.getElementById('author').value;
       const category = document.getElementById('category').value;
       const tags = document.getElementById('tags').value;
       const description = document.getElementById('description').value;
-      const heroImage = document.getElementById('heroImage').value || '/images/blog-placeholder.jpg';
+      const image = document.getElementById('image').value || '/images/blog-placeholder.jpg';
       const content = document.getElementById('content').value;
       
       const frontmatter = `---
 title: "${title}"
 description: "${description}"
-pubDate: ${pubDate}
-heroImage: "${heroImage}"
+date: ${date}
+author: "${author}"
+image: "${image}"
 category: "${category}"
 tags: [${tags.split(',').map(t => '"' + t.trim() + '"').join(', ')}]
+featured: false
 ---
 
 ${content}`;
@@ -276,7 +282,6 @@ ${content}`;
         const file = await apiCall(`/repos/${REPO}/contents/${path}?ref=${BRANCH}`);
         const content = decodeURIComponent(escape(atob(file.content)));
         
-        // Parse frontmatter
         const match = content.match(/^---\n([\s\S]*?)\n---/);
         let frontmatter = {};
         let bodyContent = content;
@@ -287,10 +292,12 @@ ${content}`;
           
           frontmatter.title = fm.match(/title:\s*["']?(.*?)["']?\s*$/m)?.[1] || '';
           frontmatter.description = fm.match(/description:\s*["']?(.*?)["']?\s*$/m)?.[1] || '';
-          frontmatter.pubDate = fm.match(/pubDate:\s*(.*?)\s*$/m)?.[1] || '';
-          frontmatter.category = fm.match(/category:\s*["']?(.*?)["']?\s*$/m)?.[1] || '';
+          frontmatter.date = fm.match(/date:\s*(.*?)\s*$/m)?.[1] || '';
+          frontmatter.author = fm.match(/author:\s*["']?(.*?)["']?\s*$/m)?.[1] || 'Admin';
+          frontmatter.category = fm.match(/category:\s*["']?(.*?)["']?\s*$/m)?.[1] || 'ai';
           frontmatter.tags = fm.match(/tags:\s*\[(.*?)\]/m)?.[1]?.split(',').map(t => t.trim().replace(/["']/g, '')).join(', ') || '';
-          frontmatter.heroImage = fm.match(/heroImage:\s*["']?(.*?)["']?\s*$/m)?.[1] || '';
+          frontmatter.image = fm.match(/image:\s*["']?(.*?)["']?\s*$/m)?.[1] || '';
+          frontmatter.featured = fm.match(/featured:\s*(.*?)\s*$/m)?.[1]?.trim() === 'true';
         }
         
         currentFile = { path, sha: file.sha };
@@ -307,7 +314,7 @@ ${content}`;
               <div class="form-group">
                 <label>Danh mục:</label>
                 <select id="category">
-                  ${categories.map(c => `<option value="${c}" ${c === frontmatter.category ? 'selected' : ''}>${c}</option>`).join('')}
+                  ${categories.map(c => `<option value="${c.toLowerCase()}" ${c.toLowerCase() === frontmatter.category ? 'selected' : ''}>${c}</option>`).join('')}
                 </select>
               </div>
             </div>
@@ -315,22 +322,28 @@ ${content}`;
             <div class="form-row">
               <div class="form-group">
                 <label>Ngày đăng:</label>
-                <input type="datetime-local" id="pubDate" value="${frontmatter.pubDate?.replace(' ', 'T') || ''}">
+                <input type="datetime-local" id="date" value="${frontmatter.date?.replace(' ', 'T') || ''}">
               </div>
+              <div class="form-group">
+                <label>Tác giả:</label>
+                <input type="text" id="author" value="${frontmatter.author || 'Admin'}">
+              </div>
+            </div>
+            
+            <div class="form-row">
               <div class="form-group">
                 <label>Tags (phân cách bằng dấu phẩy):</label>
                 <input type="text" id="tags" value="${frontmatter.tags || ''}">
+              </div>
+              <div class="form-group">
+                <label>Ảnh đại diện (URL):</label>
+                <input type="text" id="image" value="${frontmatter.image || '/images/blog-placeholder.jpg'}">
               </div>
             </div>
             
             <div class="form-group">
               <label>Mô tả ngắn:</label>
               <input type="text" id="description" value="${frontmatter.description || ''}">
-            </div>
-            
-            <div class="form-group">
-              <label>Ảnh đại diện (URL):</label>
-              <input type="text" id="heroImage" value="${frontmatter.heroImage || '/images/blog-placeholder.jpg'}">
             </div>
             
             <div class="form-group">
@@ -351,20 +364,23 @@ ${content}`;
       if (!currentFile) return;
       
       const title = document.getElementById('title').value;
-      const pubDate = document.getElementById('pubDate').value.replace('T', ' ');
+      const date = document.getElementById('date').value.replace('T', ' ');
+      const author = document.getElementById('author').value;
       const category = document.getElementById('category').value;
       const tags = document.getElementById('tags').value;
       const description = document.getElementById('description').value;
-      const heroImage = document.getElementById('heroImage').value || '/images/blog-placeholder.jpg';
+      const image = document.getElementById('image').value || '/images/blog-placeholder.jpg';
       const bodyContent = document.getElementById('content').value;
       
       const frontmatter = `---
 title: "${title}"
 description: "${description}"
-pubDate: ${pubDate}
-heroImage: "${heroImage}"
+date: ${date}
+author: "${author}"
+image: "${image}"
 category: "${category}"
 tags: [${tags.split(',').map(t => '"' + t.trim() + '"').join(', ')}]
+featured: false
 ---
 
 ${bodyContent}`;
