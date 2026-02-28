@@ -7,4 +7,6 @@ heroImage: "/images/blog-placeholder.jpg"
 
 # Test Decap CMS
 
-Viết nội dung bài viết tại đây...
+Test cách viết
+chưa biết viết trên đây
+
