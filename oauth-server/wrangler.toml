@@ -1,0 +1,7 @@
+name = "cms-oauth"
+main = "worker.js"
+compatibility_date = "2024-01-01"
+
+[vars]
+GITHUB_CLIENT_ID = "Ov23liMxWxqkdzkWpXj6"
+GITHUB_CLIENT_SECRET = "19b84da488ef0e2fcb4005c66ac31e78a5814a3a"
