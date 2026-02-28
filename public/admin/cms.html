@@ -4,10 +4,13 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>NongTech CMS - Quản lý bài viết</title>
+  <!-- EasyMDE - Markdown Editor with WYSIWYG-like features -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/easymde/dist/easymde.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/easymde/dist/easymde.min.js"></script>
   <style>
     * { box-sizing: border-box; }
     body { font-family: system-ui, -apple-system, sans-serif; margin: 0; padding: 20px; background: #f5f5f5; }
-    .container { max-width: 1000px; margin: 0 auto; }
+    .container { max-width: 1200px; margin: 0 auto; }
     h1 { color: #333; }
     h2 { color: #333; margin-top: 0; }
     .btn { background: #0969da; color: white; padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; text-decoration: none; display: inline-block; font-size: 14px; }
@@ -27,7 +30,6 @@
     .logout { float: right; color: #666; text-decoration: none; }
     .editor { display: none; }
     .editor.active { display: block; }
-    textarea { width: 100%; height: 400px; font-family: monospace; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; }
     .form-group { margin-bottom: 15px; }
     label { display: block; margin-bottom: 5px; font-weight: 500; color: #333; }
     input[type="text"], input[type="datetime-local"], select { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; }
@@ -38,6 +40,17 @@
     .loading { text-align: center; padding: 40px; color: #666; }
     .info-box { background: #e8f4fd; border: 1px solid #0969da; border-radius: 6px; padding: 15px; margin-bottom: 20px; }
     .help-text { color: #666; font-size: 12px; margin-top: 4px; }
+    
+    /* Editor styles */
+    .editor-container { margin-bottom: 20px; }
+    .editor-toolbar { background: #f6f8fa !important; }
+    .editor-toolbar a { color: #24292f !important; }
+    .editor-toolbar a:hover { color: #0969da !important; background: #e8f4fd !important; }
+    .editor-preview { background: white !important; padding: 20px !important; }
+    .editor-preview h1, .editor-preview h2, .editor-preview h3 { color: #333; }
+    .editor-statusbar { display: none !important; }
+    #content { display: none; }
+    .EasyMDEContainer { border: 1px solid #ddd; border-radius: 6px; }
   </style>
 </head>
 <body>
@@ -57,6 +70,7 @@
     let token = localStorage.getItem('github_token');
     let posts = [];
     let currentFile = null;
+    let easyMDE = null;
     let categories = ['AI', 'Machine Learning', 'Cloud Computing', 'Programming', 'Agriculture Tech'];
     let tags = ['AI', 'Machine Learning', 'Python', 'Cloud', 'Tutorial', 'Beginner', 'Advanced', 'News'];
     
@@ -213,8 +227,39 @@
           </div>
           
           <div class="form-group">
-            <label>Nội dung (Markdown):</label>
-            <textarea id="content" placeholder="Nhập nội dung bài viết bằng Markdown..."># ${title}
+            <label>Nội dung:</label>
+            <textarea id="content"></textarea>
+          </div>
+          
+          <button class="btn" onclick="createPost()">✅ Tạo bài viết</button>
+          <button class="btn btn-secondary" onclick="loadPosts()">❌ Hủy</button>
+        </div>
+      `;
+      
+      // Initialize EasyMDE
+      easyMDE = new EasyMDE({
+        element: document.getElementById('content'),
+        spellChecker: false,
+        autosave: {
+          enabled: true,
+          uniqueId: 'new-post-autosave',
+          delay: 1000,
+        },
+        placeholder: 'Viết nội dung bài viết tại đây...',
+        toolbar: [
+          'bold', 'italic', 'heading', '|',
+          'quote', 'unordered-list', 'ordered-list', '|',
+          'link', 'image', '|',
+          'preview', 'side-by-side', 'fullscreen', '|'
+        ],
+        status: false,
+        renderingConfig: {
+          codeSyntaxHighlighting: true,
+        },
+      });
+      
+      // Set initial content
+      easyMDE.value(`# ${title}
 
 ## Giới thiệu
 
@@ -226,14 +271,7 @@ Viết nội dung chính tại đây...
 
 ## Kết luận
 
-Viết kết luận tại đây...
-</textarea>
-          </div>
-          
-          <button class="btn" onclick="createPost()">✅ Tạo bài viết</button>
-          <button class="btn btn-secondary" onclick="loadPosts()">❌ Hủy</button>
-        </div>
-      `;
+Viết kết luận tại đây...`);
     }
     
     async function createPost() {
@@ -245,7 +283,7 @@ Viết kết luận tại đây...
       const tags = document.getElementById('tags').value;
       const description = document.getElementById('description').value;
       const image = document.getElementById('image').value || '/images/blog-placeholder.jpg';
-      const content = document.getElementById('content').value;
+      const content = easyMDE ? easyMDE.value() : document.getElementById('content').value;
       
       const frontmatter = `---
 title: "${title}"
@@ -270,6 +308,12 @@ ${content}`;
             branch: BRANCH
           })
         });
+        
+        // Clear autosave
+        if (easyMDE) {
+          easyMDE.clearAutosavedValue();
+        }
+        
         alert('✅ Tạo bài viết thành công! Deploy sẽ tự động chạy trong vài phút.');
         loadPosts();
       } catch (e) {
@@ -347,14 +391,39 @@ ${content}`;
             </div>
             
             <div class="form-group">
-              <label>Nội dung (Markdown):</label>
-              <textarea id="content">${bodyContent}</textarea>
+              <label>Nội dung:</label>
+              <textarea id="content"></textarea>
             </div>
             
             <button class="btn" onclick="savePost()">💾 Lưu bài viết</button>
             <button class="btn btn-secondary" onclick="loadPosts()">❌ Hủy</button>
           </div>
         `;
+        
+        // Initialize EasyMDE
+        easyMDE = new EasyMDE({
+          element: document.getElementById('content'),
+          spellChecker: false,
+          autosave: {
+            enabled: true,
+            uniqueId: 'edit-post-autosave-' + path,
+            delay: 1000,
+          },
+          placeholder: 'Viết nội dung bài viết...',
+          toolbar: [
+            'bold', 'italic', 'heading', '|',
+            'quote', 'unordered-list', 'ordered-list', '|',
+            'link', 'image', '|',
+            'preview', 'side-by-side', 'fullscreen', '|'
+          ],
+          status: false,
+          renderingConfig: {
+            codeSyntaxHighlighting: true,
+          },
+        });
+        
+        easyMDE.value(bodyContent);
+        
       } catch (e) {
         alert('Lỗi: ' + e.message);
       }
@@ -370,7 +439,7 @@ ${content}`;
       const tags = document.getElementById('tags').value;
       const description = document.getElementById('description').value;
       const image = document.getElementById('image').value || '/images/blog-placeholder.jpg';
-      const bodyContent = document.getElementById('content').value;
+      const bodyContent = easyMDE ? easyMDE.value() : document.getElementById('content').value;
       
       const frontmatter = `---
 title: "${title}"
@@ -396,6 +465,12 @@ ${bodyContent}`;
             sha: currentFile.sha
           })
         });
+        
+        // Clear autosave
+        if (easyMDE) {
+          easyMDE.clearAutosavedValue();
+        }
+        
         alert('✅ Lưu thành công! Deploy sẽ tự động chạy trong vài phút.');
         loadPosts();
       } catch (e) {
