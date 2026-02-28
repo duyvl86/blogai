@@ -1,0 +1,36 @@
+backend:
+  name: git-gateway
+  branch: main
+
+media_folder: "public/images"
+public_folder: "/images"
+
+collections:
+  - name: "blog"
+    label: "Blog"
+    folder: "src/content/blog"
+    create: true
+    slug: "{{slug}}"
+    fields:
+      - {label: "Title", name: "title", widget: "string"}
+      - {label: "Description", name: "description", widget: "text"}
+      - {label: "Date", name: "date", widget: "datetime"}
+      - {label: "Author", name: "author", widget: "string", default: "Admin"}
+      - {label: "Category", name: "category", widget: "string", default: "AI"}
+      - {label: "Tags", name: "tags", widget: "list"}
+      - {label: "Featured", name: "featured", widget: "boolean", default: false}
+      - {label: "Body", name: "body", widget: "markdown"}
+
+  - name: "tools"
+    label: "AI Tools"
+    folder: "src/content/tools"
+    create: true
+    slug: "{{slug}}"
+    fields:
+      - {label: "Name", name: "name", widget: "string"}
+      - {label: "Description", name: "description", widget: "text"}
+      - {label: "Website", name: "website", widget: "string"}
+      - {label: "Logo", name: "logo", widget: "string", required: false}
+      - {label: "Category", name: "category", widget: "string"}
+      - {label: "Pricing", name: "pricing", widget: "select", options: ["free", "freemium", "paid"]}
+      - {label: "Features", name: "features", widget: "list"}
